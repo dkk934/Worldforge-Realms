@@ -139,10 +139,9 @@ export class WorldChunk extends THREE.Group {
       .filter((blockType) => blockType.id !== blocks.empty.id)
       .forEach((blockType) => {
         const mesh = new THREE.InstancedMesh(
-          geometry,
+         geometry,
           blockType.material,
           maxCount
-
         );
         mesh.name = blockType.id;
         mesh.count = 0;

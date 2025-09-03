@@ -29,7 +29,6 @@ export const block = {
   grass: {
     id: 1,
     name: "grass",
-    color: 0x559020,
     material: [
       new THREE.MeshLambertMaterial({ map: textures.grassSide }), // right
       new THREE.MeshLambertMaterial({ map: textures.grassSide }), // left
@@ -84,7 +83,14 @@ export const block = {
   leaves: {
     id: 7,
     name: "leaves",
-    material: new THREE.MeshLambertMaterial({ map: textures.leaves }),
+    geometry : new THREE.SphereGeometry(1, 1),
+    material: new THREE.MeshLambertMaterial({
+      map: textures.leaves,
+      transparent: true,
+      // alphaTest:0.9
+      side: THREE.DoubleSide,
+      // depthWrite: false
+    }),
   },
   sand: {
     id: 8,

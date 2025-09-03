@@ -73,7 +73,7 @@ h1 {
   outline: 4px solid white;
 }
 
-/* #overlay {
+#overlay {
   position: fixed;
   top: 0;
   left: 0;
@@ -88,7 +88,7 @@ h1 {
   font-size: 2em;
   color: white;
   text-align: center;
-} */
+}
 
 #status {
   position: fixed;
