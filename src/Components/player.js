@@ -59,7 +59,7 @@ export class Player {
     // Add camera and helpers to scene
     this.camera.layers.enable(1);
     scene.add(this.camera);
-    scene.add(this.cameraHelper);
+    // scene.add(this.cameraHelper);
     // scene.add(this.boundHelper);
     this.camera.add(this.tool);
 
