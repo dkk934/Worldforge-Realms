@@ -83,7 +83,6 @@ export const block = {
   leaves: {
     id: 7,
     name: "leaves",
-    geometry : new THREE.SphereGeometry(1, 1),
     material: new THREE.MeshLambertMaterial({
       map: textures.leaves,
       transparent: true,
