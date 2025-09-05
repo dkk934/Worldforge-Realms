@@ -45,7 +45,7 @@ scene.add(sun.target);
 // World & Player
 // =====================
 const world = new World();
-world.generate();
+world.generate(true);
 scene.add(world);
 
 const player = new Player(scene);
@@ -81,7 +81,7 @@ let obj = {
 function onMouseDown(event) {
   if (player.controls.isLocked && player.selectedCoords) {
     if (player.activeBlockId === block.empty.id) {
-      console.log("remove", JSON.stringify(player.selectedCoords));
+      // console.log("remove", JSON.stringify(player.selectedCoords));
       world.removeBlock(
         player.selectedCoords.x,
         player.selectedCoords.y,
@@ -89,7 +89,7 @@ function onMouseDown(event) {
       );
       
       player.tool.startAnimation()
-      console.log("player animation");
+      // console.log("player animation");
       
     } else {
       // console.log("add", JSON.stringify(player.selectedCoords));

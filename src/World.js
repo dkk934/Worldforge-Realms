@@ -19,20 +19,19 @@ export class World extends THREE.Group {
     trees: {
       trunk: {
         minHeight: 5,
-        maxHeight: 7
+        maxHeight: 7,
       },
       canopy: {
         minRadius: 2,
         maxRadius: 3,
-        density: 0.65
+        density: 0.65,
       },
-      frequency: 0.01
+      frequency: 0.01,
     },
-    clouds:{
+    clouds: {
       scale: 30,
-      density: 0.351
-    }
-
+      density: 0.351,
+    },
   };
 
   dataStore = new DataStore();
@@ -40,6 +39,34 @@ export class World extends THREE.Group {
   constructor(seed = 0) {
     super();
     this.seed = seed;
+
+    document.addEventListener("keydown", (e) => {
+      // console.log("key log: ",e.code);
+      
+      switch (e.code) {
+        case "F2":
+          this.save();
+          break;
+        case "F4":
+          this.load();
+          break;
+      }
+    });
+  }
+
+  save() {
+    localStorage.setItem("mine_p", JSON.stringify(this.params));
+    localStorage.setItem("mine_d", JSON.stringify(this.dataStore.data));
+    document.getElementById("status").innerHTML = "GAME SAVED";
+    setTimeout(() => (document.getElementById("status").innerHTML = ""), 3000);
+  }
+
+  load() {
+    this.params = JSON.parse(localStorage.getItem("mine_p"));
+    this.dataStore.data = JSON.parse(localStorage.getItem("mine_d"));
+    document.getElementById("status").innerHTML = "GAME LOADED";
+    setTimeout(() => (document.getElementById("status").innerHTML = ""), 3000);
+    this.generate();
   }
 
   addBlock(x, y, z, blockid) {
@@ -66,8 +93,10 @@ export class World extends THREE.Group {
     this.clear();
   }
 
-  generate() {
-    this.dataStore.clear();
+  generate(clearCache = false) {
+    if (clearCache) {
+      this.dataStore.clear();
+    }
     this.disposeChunks();
 
     for (let x = -this.drawDistance; x <= this.drawDistance; x++) {
@@ -240,5 +269,4 @@ export class World extends THREE.Group {
       block: blockCoords,
     };
   }
-
 }
