@@ -107,8 +107,10 @@ document.addEventListener("mousedown", onMouseDown);
 window.addEventListener("resize", () => {
   orcitcamera.aspect = window.innerWidth / innerHeight;
   orcitcamera.updateProjectionMatrix();
+
   player.camera.aspect = window.innerWidth / innerHeight;
   player.camera.updateProjectionMatrix();
+  
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 

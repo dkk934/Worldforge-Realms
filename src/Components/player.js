@@ -1,10 +1,17 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/Addons.js";
 import { block as blocks } from "../Utilities/Block";
-import { log } from "three/tsl";
 import { Tool } from "../Utilities/Tool";
+import nipplejs from "nipplejs";
 
 const CENTER_SCREEN = new THREE.Vector2();
+
+const joystick = nipplejs.create({
+    zone: document.getElementById('joystick'),
+    mode: 'static',
+    position: { left: '75px', bottom: '75px' },
+    color: 'blue'
+  });
 
 export class Player {
   // Player properties
@@ -64,6 +71,14 @@ export class Player {
     this.camera.add(this.tool);
 
     // Input event listeners
+    joystick.on('move', (evt, data) => {
+    if (data.direction) {
+      if (data.direction.y === 'up') this.moveForward();
+      if (data.direction.y === 'down') this.moveBackward();
+      if (data.direction.x === 'left') this.moveLeft();
+      if (data.direction.x === 'right') this.moveRight();
+    }
+  });
     document.addEventListener("keydown", this.onKeyDown.bind(this));
     document.addEventListener("keyup", this.onKeyUp.bind(this));
     scene.add(this.selectionHelper);
@@ -167,7 +182,7 @@ export class Player {
           .getElementById(`toolbar-${this.activeBlockId}`)
           .classList.add("selected");
         this.tool.visible = this.activeBlockId === 0;
-        console.log("activeBlock =", e.key);
+        // console.log("activeBlock =", e.key);
         break;
       case "KeyU":
         this.input.y = this.maxSpeed;
@@ -177,28 +192,26 @@ export class Player {
         break;
       case "KeyW":
       case "ArrowUp":
-        this.input.z = this.maxSpeed;
+        this.moveForward();
         break;
       case "KeyA":
       case "ArrowLeft":
-        this.input.x = -this.maxSpeed;
+        this.moveLeft();
         break;
       case "KeyS":
       case "ArrowDown":
-        this.input.z = -this.maxSpeed;
+        this.moveBackward();
         break;
       case "KeyD":
       case "ArrowRight":
-        this.input.x = this.maxSpeed;
+        this.moveRight();
         break;
       case "KeyR":
         this.position.set(32, 16, 32);
         this.velocity.set(0, 0, 0);
         break;
       case "Space":
-        if (this.onGround) {
-          this.velocity.y += this.jumpSpeed;
-        }
+        this.jump()
         break;
     }
   }
@@ -222,6 +235,29 @@ export class Player {
       case "ArrowRight":
         this.input.x = 0;
         break;
+    }
+  }
+
+  moveLeft() {
+    this.input.x = -this.maxSpeed;
+  }
+
+  moveRight() {
+    this.input.x = this.maxSpeed;
+  }
+
+  moveForward() {
+    this.input.z = this.maxSpeed;
+  }
+
+  moveBackward() {
+    this.input.z = -this.maxSpeed;
+  }
+
+  jump() {
+    if (this.onGround) {
+      this.velocity.y = this.jumpSpeed;
+      this.onGround = false;
     }
   }
 

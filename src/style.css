@@ -8,7 +8,8 @@
 /* remove white border from page */
 body {
   margin: 0;
-  font-family: 'Minecraft';
+  font-family: "Minecraft";
+  overflow: hidden;
 }
 
 h1 {
@@ -43,7 +44,6 @@ h1 {
   column-gap: 12px;
 }
 
-
 .toolbar-icon {
   width: 64px;
   height: 64px;
@@ -61,7 +61,7 @@ h1 {
   left: 50%;
   bottom: 4px;
   transform: translateX(-50%);
-  background: rgba(0,0,0,0.5);
+  background: rgba(0, 0, 0, 0.5);
   color: #fff;
   font-size: 1.2em;
   padding: 2px 8px;
@@ -96,4 +96,19 @@ h1 {
   left: 8px;
   font-size: 2em;
   color: white;
+}
+
+#joystick {
+  width: 150px;
+  height: 150px;
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+#lookArea {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 70%; /* right side for looking */
+  height: 100%;
 }

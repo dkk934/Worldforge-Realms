@@ -9,6 +9,7 @@ function loadTexture(path) {
   texture.magFilter = THREE.NearestFilter;
   return texture;
 }
+
 const textures = {
   dirt: loadTexture("textures/dirt.png"),
   grass: loadTexture("textures/grass.png"),
@@ -20,7 +21,11 @@ const textures = {
   treeTop: loadTexture("textures/tree_top.png"),
   treeSide: loadTexture("textures/tree_side.png"),
   sand: loadTexture("textures/sand.png"),
+  j_leaves: loadTexture("textures/jungle_leaves.png"),
+  j_treeTop: loadTexture("textures/jungle_tree_top.png"),
+  j_treeSide: loadTexture("textures/jungle_tree_side.png")
 };
+
 export const block = {
   empty: {
     id: 0,
@@ -100,6 +105,34 @@ export const block = {
     id: 9,
     name: "cloud",
     material: new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }),
+  },
+  snow: {
+    id: 10,
+    name: "Snow",
+    material: new THREE.MeshLambertMaterial({ color: 0xf0f0f0 }),
+  },
+  jungletree: {
+    id: 11,
+    name: "jungletree",
+    material: [
+       new THREE.MeshLambertMaterial({ map: textures.j_treeSide }), // right
+      new THREE.MeshLambertMaterial({ map: textures.j_treeSide }), // left
+      new THREE.MeshLambertMaterial({ map: textures.j_treeTop }), // top
+      new THREE.MeshLambertMaterial({ map: textures.j_treeTop }), // bottom
+      new THREE.MeshLambertMaterial({ map: textures.j_treeSide }), // front
+      new THREE.MeshLambertMaterial({ map: textures.j_treeSide }), // back
+    ],
+  },
+  jungleLeaves: {
+    id: 12,
+    name: "jungleleaves",
+    material: new THREE.MeshLambertMaterial({
+      map: textures.j_leaves,
+      transparent: true,
+      // alphaTest:0.9
+      side: THREE.DoubleSide,
+      // depthWrite: false
+    }),
   },
 };
 
