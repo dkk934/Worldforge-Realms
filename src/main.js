@@ -1,18 +1,18 @@
-// =====================
-// Imports
-// =====================
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Render } from "./Components/Render";
-import { Camera } from "./Components/Camera";
+// import { Camera } from "./Components/Camera";
 import { Light } from "./Components/Lights";
-import { Helper } from "./Utilities/Helpers";
+// import { Helper } from "./Utilities/Helpers";
 import { createUi } from "./Utilities/Ui";
-import { Player } from "./Components/player";
+// import { Player } from "./Components/Player/player";
 import Physics from "./Physics";
 import { World } from "./World";
 import { block } from "./Utilities/Block";
 import { ModelLoader } from "./Utilities/ModelLoader";
+import { setupControls } from "./Utilities/controlsSetup";
+import Controls from "./Components/Player/Controls";
+ 
 
 // =====================
 // Scene & Camera Setup
@@ -20,11 +20,9 @@ import { ModelLoader } from "./Utilities/ModelLoader";
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 30, 40);
-
 const modelLoader = new ModelLoader();
 
-const orcitcamera = Camera();
-orcitcamera.layers.enable(1);
+
 
 // =====================
 // Renderer & Stats
@@ -48,10 +46,24 @@ const world = new World();
 world.generate(true);
 scene.add(world);
 
-const player = new Player(scene);
+const controlarType = setupControls()
+const player = new Controls(scene,controlarType);
 modelLoader.loadModels((models)=>{
   player.tool.setMesh(models.pickaxe)
 })
+let playerCamera = player.FPP
+let tppCamera = player.TPP
+let activeCamera = playerCamera;
+
+
+window.addEventListener("keydown", (event) => {
+  if (event.code === "KeyV") {
+    activeCamera = (activeCamera === playerCamera) ? tppCamera : playerCamera;
+    player.activeCamera = activeCamera;  // 👈 add this line
+  }
+});
+
+
 // =====================
 // Physics
 // =====================
@@ -62,8 +74,8 @@ const physics = new Physics(scene);
 // =====================
 // scene.add(Helper.grid);
 // scene.add(Helper.axishlper);
-const controls = Helper.createOrbitControls(orcitcamera, renderer);
-controls.target.set(16, 0, 16);
+// const controls = Helper.createOrbitControls(orcitcamera, renderer);
+// controls.target.set(16, 0, 16);
 // const DLHelper = Helper.DLightHelper(Light.directionallight);
 // scene.add(DLHelper);
 const dlshowdoh = new THREE.CameraHelper(Light.directionallight.shadow.camera);
@@ -105,12 +117,13 @@ function onMouseDown(event) {
 document.addEventListener("mousedown", onMouseDown);
 
 window.addEventListener("resize", () => {
-  orcitcamera.aspect = window.innerWidth / innerHeight;
-  orcitcamera.updateProjectionMatrix();
 
-  player.camera.aspect = window.innerWidth / innerHeight;
-  player.camera.updateProjectionMatrix();
-  
+  player.FPP.aspect = window.innerWidth / window.innerHeight;
+  player.FPP.updateProjectionMatrix();
+  if (player.TPP) {
+    player.TPP.aspect = window.innerWidth / window.innerHeight;
+    player.TPP.updateProjectionMatrix();
+  }
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
@@ -138,9 +151,13 @@ function animate() {
     scene.remove(dlshowdoh);
   }
 
+    if (activeCamera === tppCamera) {
+    player.updateTPPCamera();
+  }
+
   renderer.render(
     scene,
-    player.controls.isLocked ? player.camera : orcitcamera
+    activeCamera
   );
   stats.update();
 
@@ -152,3 +169,5 @@ function animate() {
 // =====================
 createUi(world, obj);
 animate();
+
+

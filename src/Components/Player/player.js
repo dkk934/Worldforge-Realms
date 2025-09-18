@@ -1,17 +1,10 @@
 import * as THREE from "three";
 import { PointerLockControls } from "three/examples/jsm/Addons.js";
-import { block as blocks } from "../Utilities/Block";
-import { Tool } from "../Utilities/Tool";
-import nipplejs from "nipplejs";
+import { block as blocks } from "../../Utilities/Block";
+import { Tool } from "../../Utilities/Tool";
+import { Camera } from "../Camera";
 
 const CENTER_SCREEN = new THREE.Vector2();
-
-const joystick = nipplejs.create({
-    zone: document.getElementById('joystick'),
-    mode: 'static',
-    position: { left: '75px', bottom: '75px' },
-    color: 'blue'
-  });
 
 export class Player {
   // Player properties
@@ -24,7 +17,7 @@ export class Player {
     new THREE.Vector3(),
     new THREE.Vector3(),
     0,
-    3
+    4
   );
   selectedCoords = null;
   activeBlockId = blocks.empty.id;
@@ -36,14 +29,10 @@ export class Player {
   #worldVelocity = new THREE.Vector3();
 
   // Camera and controls
-  camera = new THREE.PerspectiveCamera(
-    70,
-    window.innerWidth / window.innerHeight,
-    0.1,
-    1000
-  );
-  controls = new PointerLockControls(this.camera, document.body);
-  cameraHelper = new THREE.CameraHelper(this.camera);
+  FPP = new Camera();
+  TPP = new Camera();
+  controls = new PointerLockControls(this.FPP, document.body);
+  cameraHelper = new THREE.CameraHelper(this.FPP);
 
   // Bounding helper
   boundHelper = new THREE.Mesh(
@@ -61,42 +50,44 @@ export class Player {
 
   constructor(scene) {
     // Set initial position
-    this.position.set(32, 16, 32);
+    this.position.set(30, 6, 32);
 
     // Add camera and helpers to scene
-    this.camera.layers.enable(1);
-    scene.add(this.camera);
+    this.FPP.layers.enable(1);
+    scene.add(this.FPP);
     // scene.add(this.cameraHelper);
-    // scene.add(this.boundHelper);
-    this.camera.add(this.tool);
+    scene.add(this.boundHelper);
+    this.FPP.add(this.tool);
 
-    // Input event listeners
-    joystick.on('move', (evt, data) => {
-    if (data.direction) {
-      if (data.direction.y === 'up') this.moveForward();
-      if (data.direction.y === 'down') this.moveBackward();
-      if (data.direction.x === 'left') this.moveLeft();
-      if (data.direction.x === 'right') this.moveRight();
-    }
-  });
-    document.addEventListener("keydown", this.onKeyDown.bind(this));
-    document.addEventListener("keyup", this.onKeyUp.bind(this));
     scene.add(this.selectionHelper);
     this.raycaster.layers.set(0);
   }
 
   // Position getter (camera position)
   get position() {
-    return this.camera.position;
+    return this.FPP.position;
   }
 
   // World velocity getter
   get worldVelocity() {
     this.#worldVelocity.copy(this.velocity);
-    this.#worldVelocity.applyEuler(
-      new THREE.Euler(0, this.camera.rotation.y, 0)
-    );
+    this.#worldVelocity.applyEuler(new THREE.Euler(0, this.FPP.rotation.y, 0));
     return this.#worldVelocity;
+  }
+
+  updateTPPCamera() {
+    // Use full FPP quaternion (pitch, yaw, roll)
+    const q = this.FPP.quaternion;
+
+    // offset: up/down and back relative to FPP local axes
+    const offset = new THREE.Vector3(0, -2, -5).clone();
+    offset.applyQuaternion(q);
+
+    // Put TPP behind the FPP position (sub offset so offset=(0, -2, -5) goes behind)
+    this.TPP.position.copy(this.FPP.position).sub(offset);
+
+    // Copy rotation so TPP sits with same orientation as the "head" (passive chase cam)
+    this.TPP.quaternion.copy(q);
   }
 
   update(world) {
@@ -105,7 +96,7 @@ export class Player {
   }
 
   updateRaycaster(world) {
-    this.raycaster.setFromCamera(CENTER_SCREEN, this.camera);
+    this.raycaster.setFromCamera(CENTER_SCREEN, this.FPP);
     const intersections = this.raycaster.intersectObject(world, true);
 
     if (intersections.length > 0) {
@@ -132,19 +123,23 @@ export class Player {
 
   // Apply a delta velocity in world space
   applyWorldDeltaVelocity(dv) {
-    dv.applyEuler(new THREE.Euler(0, -this.camera.rotation.y, 0));
+    dv.applyEuler(new THREE.Euler(0, -this.FPP.rotation.y, 0));
     this.velocity.add(dv);
   }
 
-  // Apply input to movement
   applyInputs(dt) {
     if (!this.controls.isLocked) return;
 
+    // keep input -> velocity mapping
     this.velocity.x = this.input.x;
     this.velocity.z = this.input.z;
 
+    // Let PointerLockControls handle camera-local movement (no pre-rotation).
+    // This avoids applying the camera rotation twice.
     this.controls.moveRight(this.velocity.x * dt);
     this.controls.moveForward(this.velocity.z * dt);
+
+    // vertical velocity handled directly
     this.position.y += this.velocity.y * dt;
 
     document.getElementById("player-position").innerHTML = this.toString();
@@ -154,88 +149,6 @@ export class Player {
   updateBoundsHelper() {
     this.boundHelper.position.copy(this.position);
     this.boundHelper.position.y -= this.height / 2;
-  }
-
-  // Handle key down events
-  onKeyDown(e) {
-    if (!this.controls.isLocked) {
-      this.controls.lock();
-      // console.log("controls locked");
-      // console.log(e.code);
-    }
-
-    switch (e.code) {
-      case "Digit0":
-      case "Digit1":
-      case "Digit2":
-      case "Digit3":
-      case "Digit4":
-      case "Digit5":
-      case "Digit6":
-      case "Digit7":
-      case "Digit8":
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.remove("selected");
-        this.activeBlockId = Number(e.key);
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.add("selected");
-        this.tool.visible = this.activeBlockId === 0;
-        // console.log("activeBlock =", e.key);
-        break;
-      case "KeyU":
-        this.input.y = this.maxSpeed;
-        break;
-      case "KeyB":
-        this.input.y = -this.maxSpeed;
-        break;
-      case "KeyW":
-      case "ArrowUp":
-        this.moveForward();
-        break;
-      case "KeyA":
-      case "ArrowLeft":
-        this.moveLeft();
-        break;
-      case "KeyS":
-      case "ArrowDown":
-        this.moveBackward();
-        break;
-      case "KeyD":
-      case "ArrowRight":
-        this.moveRight();
-        break;
-      case "KeyR":
-        this.position.set(32, 16, 32);
-        this.velocity.set(0, 0, 0);
-        break;
-      case "Space":
-        this.jump()
-        break;
-    }
-  }
-
-  // Handle key up events
-  onKeyUp(e) {
-    switch (e.code) {
-      case "KeyU":
-      case "KeyB":
-        this.input.y = 0;
-        break;
-      case "KeyW":
-      case "ArrowUp":
-      case "KeyS":
-      case "ArrowDown":
-        this.input.z = 0;
-        break;
-      case "KeyA":
-      case "ArrowLeft":
-      case "KeyD":
-      case "ArrowRight":
-        this.input.x = 0;
-        break;
-    }
   }
 
   moveLeft() {
