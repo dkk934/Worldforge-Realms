@@ -12,7 +12,6 @@ import { block } from "./Utilities/Block";
 import { ModelLoader } from "./Utilities/ModelLoader";
 import { setupControls } from "./Utilities/controlsSetup";
 import Controls from "./Components/Player/Controls";
- 
 
 // =====================
 // Scene & Camera Setup
@@ -21,8 +20,6 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x87ceeb);
 scene.fog = new THREE.Fog(0x87ceeb, 30, 40);
 const modelLoader = new ModelLoader();
-
-
 
 // =====================
 // Renderer & Stats
@@ -46,23 +43,21 @@ const world = new World();
 world.generate(true);
 scene.add(world);
 
-const controlarType = setupControls()
-const player = new Controls(scene,controlarType);
-modelLoader.loadModels((models)=>{
-  player.tool.setMesh(models.pickaxe)
-})
-let playerCamera = player.FPP
-let tppCamera = player.TPP
+const controlarType = setupControls();
+const player = new Controls(scene, controlarType);
+modelLoader.loadModels((models) => {
+  player.tool.setMesh(models.pickaxe);
+});
+let playerCamera = player.FPP;
+let tppCamera = player.TPP;
 let activeCamera = playerCamera;
-
 
 window.addEventListener("keydown", (event) => {
   if (event.code === "KeyV") {
-    activeCamera = (activeCamera === playerCamera) ? tppCamera : playerCamera;
-    player.activeCamera = activeCamera;  // 👈 add this line
+    activeCamera = activeCamera === playerCamera ? tppCamera : playerCamera;
+    player.activeCamera = activeCamera; // 👈 add this line
   }
 });
-
 
 // =====================
 // Physics
@@ -91,33 +86,43 @@ let obj = {
 // Event Handlers
 // =====================
 function onMouseDown(event) {
-  if (player.controls.isLocked && player.selectedCoords) {
-    if (player.activeBlockId === block.empty.id) {
-      // console.log("remove", JSON.stringify(player.selectedCoords));
-      world.removeBlock(
-        player.selectedCoords.x,
-        player.selectedCoords.y,
-        player.selectedCoords.z
-      );
-      
-      player.tool.startAnimation()
-      // console.log("player animation");
-      
-    } else {
-      // console.log("add", JSON.stringify(player.selectedCoords));
-      world.addBlock(
-        player.selectedCoords.x,
-        player.selectedCoords.y,
-        player.selectedCoords.z,
-        player.activeBlockId
-      );
+  try {
+    // Check if player can interact (either pointer locked or mobile)
+    if ((player.controlarType === "desktop" && player.controls.isLocked) || 
+        player.controlarType === "mobile") {
+
+      if (!player.selectedCoords) return; // nothing selected
+
+      const { x, y, z } = player.selectedCoords;
+
+      if (player.activeBlockId === block.empty.id) {
+        // Remove block
+        if (world && typeof world.removeBlock === "function") {
+          world.removeBlock(x, y, z);
+        } else {
+          console.error("World or removeBlock method not found!");
+        }
+        player.tool?.startAnimation?.(); // optional chaining to prevent errors
+      } else {
+        // Add block
+        if (world && typeof world.addBlock === "function") {
+          world.addBlock(x, y, z, player.activeBlockId);
+        } else {
+          console.error("World or addBlock method not found!");
+        }
+      }
     }
+  } catch (err) {
+    console.error("Error in onMouseDown:", err);
   }
 }
-document.addEventListener("mousedown", onMouseDown);
+
+// Event listeners
+document.addEventListener("mousedown", onMouseDown);      // Desktop
+document.addEventListener("touchstart", onMouseDown);     // Mobile
+
 
 window.addEventListener("resize", () => {
-
   player.FPP.aspect = window.innerWidth / window.innerHeight;
   player.FPP.updateProjectionMatrix();
   if (player.TPP) {
@@ -133,10 +138,21 @@ window.addEventListener("resize", () => {
 let previousTime = performance.now();
 function animate() {
   let currentTime = performance.now();
-  let dt = (currentTime - previousTime) / 1000;
+  let dt;
   requestAnimationFrame(animate);
-
-  if (player.controls.isLocked) {
+  if (controlarType == "laptop") {
+    dt = (currentTime - previousTime) / 1000;
+    if (player.controls.isLocked) {
+      player.update(world);
+      physics.update(dt, player, world);
+      world.update(player);
+      sun.position.copy(player.position);
+      sun.position.sub(new THREE.Vector3(-50, -50, -50));
+      sun.target.position.copy(player.position);
+    }
+  } else {
+    dt = 0.006;
+    player.applyInputs(dt);
     player.update(world);
     physics.update(dt, player, world);
     world.update(player);
@@ -144,6 +160,7 @@ function animate() {
     sun.position.sub(new THREE.Vector3(-50, -50, -50));
     sun.target.position.copy(player.position);
   }
+
   if (obj.shadow) {
     scene.add(dlshowdoh);
   }
@@ -151,14 +168,11 @@ function animate() {
     scene.remove(dlshowdoh);
   }
 
-    if (activeCamera === tppCamera) {
+  if (activeCamera === tppCamera) {
     player.updateTPPCamera();
   }
 
-  renderer.render(
-    scene,
-    activeCamera
-  );
+  renderer.render(scene, activeCamera);
   stats.update();
 
   previousTime = currentTime;
@@ -169,5 +183,3 @@ function animate() {
 // =====================
 createUi(world, obj);
 animate();
-
-

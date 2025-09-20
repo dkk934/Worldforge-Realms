@@ -3,6 +3,7 @@ import { PointerLockControls } from "three/examples/jsm/Addons.js";
 import { block as blocks } from "../../Utilities/Block";
 import { Tool } from "../../Utilities/Tool";
 import { Camera } from "../Camera";
+import { log } from "three/tsl";
 
 const CENTER_SCREEN = new THREE.Vector2();
 
@@ -31,7 +32,7 @@ export class Player {
   // Camera and controls
   FPP = new Camera();
   TPP = new Camera();
-  controls = new PointerLockControls(this.FPP, document.body);
+  controls;
   cameraHelper = new THREE.CameraHelper(this.FPP);
 
   // Bounding helper
@@ -47,8 +48,10 @@ export class Player {
       color: 0xffffaa,
     })
   );
+  controlarType;
 
-  constructor(scene) {
+  constructor(scene, controlarType) {
+    this.controlarType = controlarType;
     // Set initial position
     this.position.set(30, 6, 32);
 
@@ -61,6 +64,9 @@ export class Player {
 
     scene.add(this.selectionHelper);
     this.raycaster.layers.set(0);
+    if (controlarType == "laptop") {
+      this.controls = new PointerLockControls(this.FPP, document.body);
+    }
   }
 
   // Position getter (camera position)
@@ -128,20 +134,30 @@ export class Player {
   }
 
   applyInputs(dt) {
-    if (!this.controls.isLocked) return;
-
-    // keep input -> velocity mapping
+    // Desktop: require pointer lock. Mobile: allow input without pointer lock.
+    if (this.controlarType !== "mobile" && !this.controls.isLocked) return;
+    // Map input -> velocity
     this.velocity.x = this.input.x;
     this.velocity.z = this.input.z;
 
-    // Let PointerLockControls handle camera-local movement (no pre-rotation).
-    // This avoids applying the camera rotation twice.
-    this.controls.moveRight(this.velocity.x * dt);
-    this.controls.moveForward(this.velocity.z * dt);
+    if (this.controlarType === "laptop") {
+      if (!this.controls.isLocked) return;
+      this.controls.moveRight(this.velocity.x * dt);
+      this.controls.moveForward(this.velocity.z * dt);
+    } else if (this.controlarType === "mobile") {
+      // Mobile: apply movement relative to camera yaw only
+      const yawOnly = new THREE.Euler(0, this.FPP.rotation.y, 0);
+      const moveVec = new THREE.Vector3(
+        this.velocity.x * dt,
+        0,
+        this.velocity.z * dt
+      );
+      moveVec.applyEuler(yawOnly);
+      this.FPP.position.add(moveVec);
+    }
 
-    // vertical velocity handled directly
+    // Vertical
     this.position.y += this.velocity.y * dt;
-
     document.getElementById("player-position").innerHTML = this.toString();
   }
 
@@ -163,15 +179,19 @@ export class Player {
     this.input.z = this.maxSpeed;
   }
 
-  moveBackward() {
-    this.input.z = -this.maxSpeed;
-  }
+  moveBackward() {this.input.z = -this.maxSpeed;}
 
   jump() {
     if (this.onGround) {
       this.velocity.y = this.jumpSpeed;
       this.onGround = false;
     }
+  }
+  stopX() {
+    this.input.x = 0;
+  }
+  stopZ() {
+    this.input.z = 0;
   }
 
   // String representation of player position

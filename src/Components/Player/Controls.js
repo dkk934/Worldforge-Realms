@@ -3,33 +3,45 @@ import nipplejs from "nipplejs";
 
 class Controls extends Player {
   constructor(scene, controlarType) {
-    super(scene);
+    super(scene, controlarType);
+
     // Add any Controls-specific initialization here
     this.controlarType = controlarType;
     if (controlarType === "mobile") {
-      console.log("Mobile controls active");
+      console.log("📱 Mobile controls active");
+
       const joystick = nipplejs.create({
         zone: document.getElementById("joystick"),
-        mode: "dynamic",
+        mode: "static",
         position: { left: "80px", bottom: "80px" },
         color: "blue",
       });
+
+      // 🔥 Joystick move
       joystick.on("move", (evt, data) => {
-        if (data.direction) {
+        this.input.x = 0;
+        this.input.z = 0;
+
+        if (data && data.direction) {
           if (data.direction.y === "up") this.moveForward();
           if (data.direction.y === "down") this.moveBackward();
           if (data.direction.x === "left") this.moveLeft();
           if (data.direction.x === "right") this.moveRight();
         }
       });
+
+      joystick.on("end", () => {
+        console.log("🛑 Joystick end — stop moving");
+        this.stopX();
+        this.stopZ();
+      });
     } else {
-      console.log("Laptop controls active");
+      console.log("💻 Laptop controls active");
       // Setup laptop controls (pointer lock, keyboard, etc)
       document.addEventListener("keydown", this.onKeyDown.bind(this));
       document.addEventListener("keyup", this.onKeyUp.bind(this));
     }
   }
-
   // Add Controls-specific methods here
 
   onKeyDown(e) {
@@ -92,24 +104,12 @@ class Controls extends Player {
   }
 
   // Handle key up events
-  onKeyUp(e) {
+   onKeyUp(e) {
     switch (e.code) {
-      case "KeyU":
-      case "KeyB":
-        this.input.y = 0;
-        break;
-      case "KeyW":
-      case "ArrowUp":
-      case "KeyS":
-      case "ArrowDown":
-        this.input.z = 0;
-        break;
-      case "KeyA":
-      case "ArrowLeft":
-      case "KeyD":
-      case "ArrowRight":
-        this.input.x = 0;
-        break;
+      case "KeyW": case "ArrowUp":
+      case "KeyS": case "ArrowDown": this.stopZ(); break;
+      case "KeyA": case "ArrowLeft":
+      case "KeyD": case "ArrowRight": this.stopX(); break;
     }
   }
 }
