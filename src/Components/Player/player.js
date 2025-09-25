@@ -3,15 +3,16 @@ import { PointerLockControls } from "three/examples/jsm/Addons.js";
 import { block as blocks } from "../../Utilities/Block";
 import { Tool } from "../../Utilities/Tool";
 import { Camera } from "../Camera";
-import { log } from "three/tsl";
 
 const CENTER_SCREEN = new THREE.Vector2();
 
 export class Player {
   // Player properties
+  controlarType;
   radius = 0.5;
   height = 1.75;
   jumpSpeed = 10;
+  minspeed = 4;
   maxSpeed = 10;
   onGround = false;
   raycaster = new THREE.Raycaster(
@@ -48,7 +49,6 @@ export class Player {
       color: 0xffffaa,
     })
   );
-  controlarType;
 
   constructor(scene, controlarType) {
     this.controlarType = controlarType;
@@ -140,24 +140,23 @@ export class Player {
     this.velocity.x = this.input.x;
     this.velocity.z = this.input.z;
 
+    // Horizontal movement
     if (this.controlarType === "laptop") {
       if (!this.controls.isLocked) return;
       this.controls.moveRight(this.velocity.x * dt);
       this.controls.moveForward(this.velocity.z * dt);
     } else if (this.controlarType === "mobile") {
-      // Mobile: apply movement relative to camera yaw only
       const yawOnly = new THREE.Euler(0, this.FPP.rotation.y, 0);
       const moveVec = new THREE.Vector3(
-        this.velocity.x * dt,
+        this.velocity.x,
         0,
-        this.velocity.z * dt
-      );
+        -this.velocity.z
+      ).multiplyScalar(dt);
       moveVec.applyEuler(yawOnly);
       this.FPP.position.add(moveVec);
     }
 
-    // Vertical
-    this.position.y += this.velocity.y * dt;
+    // Optionally update helper/UI
     document.getElementById("player-position").innerHTML = this.toString();
   }
 
@@ -168,21 +167,28 @@ export class Player {
   }
 
   moveLeft() {
-    this.input.x = -this.maxSpeed;
+    this.input.x =
+      this.controlarType == "laptop" ? -this.maxSpeed : -this.minspeed;
   }
 
   moveRight() {
-    this.input.x = this.maxSpeed;
+    this.input.x =
+      this.controlarType == "laptop" ? this.maxSpeed : this.minspeed;
   }
 
   moveForward() {
-    this.input.z = this.maxSpeed;
+    this.input.z =
+      this.controlarType == "laptop" ? this.maxSpeed : this.minspeed;
   }
 
-  moveBackward() {this.input.z = -this.maxSpeed;}
+  moveBackward() {
+    this.input.z =
+      this.controlarType == "laptop" ? -this.maxSpeed : -this.minspeed;
+  }
 
   jump() {
     if (this.onGround) {
+      console.log("Jump triggered");
       this.velocity.y = this.jumpSpeed;
       this.onGround = false;
     }

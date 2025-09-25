@@ -16,7 +16,7 @@ const contactGeometry = new THREE.SphereGeometry(0.05, 6, 6);
 
 export default class Physics {
   gravity = 32;
-  simulationRate = 200;
+  simulationRate = 160;
   timestep = 1 / this.simulationRate;
   accumulator = 0;
   constructor(scene) {
@@ -31,9 +31,11 @@ export default class Physics {
       this.helpers.clear();
       player.velocity.y -= this.gravity * this.timestep;
       player.applyInputs(this.timestep);
+      // Vertical movement only once per physics tick
+      player.FPP.position.y += player.velocity.y * this.timestep;
       player.updateBoundsHelper();
       this.detectCollisions(player, world);
-      this.accumulator -= this.timestep
+      this.accumulator -= this.timestep;
     }
   }
 

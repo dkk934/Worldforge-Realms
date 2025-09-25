@@ -88,9 +88,10 @@ let obj = {
 function onMouseDown(event) {
   try {
     // Check if player can interact (either pointer locked or mobile)
-    if ((player.controlarType === "desktop" && player.controls.isLocked) || 
-        player.controlarType === "mobile") {
-
+    if (
+      (player.controlarType === "laptop" && player.controls.isLocked) ||
+      player.controlarType === "mobile"
+    ) {
       if (!player.selectedCoords) return; // nothing selected
 
       const { x, y, z } = player.selectedCoords;
@@ -118,9 +119,8 @@ function onMouseDown(event) {
 }
 
 // Event listeners
-document.addEventListener("mousedown", onMouseDown);      // Desktop
-document.addEventListener("touchstart", onMouseDown);     // Mobile
-
+document.addEventListener("mousedown", onMouseDown); // Desktop
+document.addEventListener("touchstart", onMouseDown); // Mobile
 
 window.addEventListener("resize", () => {
   player.FPP.aspect = window.innerWidth / window.innerHeight;
@@ -137,29 +137,29 @@ window.addEventListener("resize", () => {
 // =====================
 let previousTime = performance.now();
 function animate() {
-  let currentTime = performance.now();
-  let dt;
   requestAnimationFrame(animate);
-  if (controlarType == "laptop") {
-    dt = (currentTime - previousTime) / 1000;
+  let currentTime = performance.now();
+  let dt = (currentTime - previousTime) / 1000;
+  dt = Math.min(dt, 0.05);
+
+  if (controlarType === "laptop") {
     if (player.controls.isLocked) {
       player.update(world);
       physics.update(dt, player, world);
       world.update(player);
-      sun.position.copy(player.position);
-      sun.position.sub(new THREE.Vector3(-50, -50, -50));
-      sun.target.position.copy(player.position);
     }
-  } else {
-    dt = 0.006;
-    player.applyInputs(dt);
+  } else if (controlarType === "mobile") {
+    // Fixed step for smoother mobile control
+    const mobileDt = dt; // ~60fps
+    player.applyInputs(mobileDt);
     player.update(world);
-    physics.update(dt, player, world);
+    physics.update(mobileDt, player, world);
     world.update(player);
-    sun.position.copy(player.position);
-    sun.position.sub(new THREE.Vector3(-50, -50, -50));
-    sun.target.position.copy(player.position);
   }
+
+  // Sync sun with player position (common for both)
+  sun.position.copy(player.position).sub(new THREE.Vector3(-50, -50, -50));
+  sun.target.position.copy(player.position);
 
   if (obj.shadow) {
     scene.add(dlshowdoh);

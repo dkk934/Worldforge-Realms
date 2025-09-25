@@ -1,5 +1,6 @@
 import { Player } from "../Player/player.js";
 import nipplejs from "nipplejs";
+import { Joystick, JumpButton } from "../../Utilities/Joystick.js";
 
 class Controls extends Player {
   constructor(scene, controlarType) {
@@ -10,17 +11,21 @@ class Controls extends Player {
     if (controlarType === "mobile") {
       console.log("📱 Mobile controls active");
 
-      const joystick = nipplejs.create({
-        zone: document.getElementById("joystick"),
-        mode: "static",
-        position: { left: "80px", bottom: "80px" },
-        color: "blue",
+      const joystick = new Joystick({
+        container: document.body,
+        size: 150,
+        deadzone: 5,
+      });
+      const jumpBtn = new JumpButton({
+        container: document.body,
+        player: this,
+        size: 70,
       });
 
       // 🔥 Joystick move
       joystick.on("move", (evt, data) => {
-        this.input.x = 0;
-        this.input.z = 0;
+        this.velocity.x = 0;
+        this.velocity.z = 0;
 
         if (data && data.direction) {
           if (data.direction.y === "up") this.moveForward();
@@ -34,6 +39,10 @@ class Controls extends Player {
         console.log("🛑 Joystick end — stop moving");
         this.stopX();
         this.stopZ();
+      });
+      jumpBtn.on("jump", () => {
+        console.log("🆙 Jump button pressed");
+        this.jump();
       });
     } else {
       console.log("💻 Laptop controls active");
@@ -104,12 +113,20 @@ class Controls extends Player {
   }
 
   // Handle key up events
-   onKeyUp(e) {
+  onKeyUp(e) {
     switch (e.code) {
-      case "KeyW": case "ArrowUp":
-      case "KeyS": case "ArrowDown": this.stopZ(); break;
-      case "KeyA": case "ArrowLeft":
-      case "KeyD": case "ArrowRight": this.stopX(); break;
+      case "KeyW":
+      case "ArrowUp":
+      case "KeyS":
+      case "ArrowDown":
+        this.stopZ();
+        break;
+      case "KeyA":
+      case "ArrowLeft":
+      case "KeyD":
+      case "ArrowRight":
+        this.stopX();
+        break;
     }
   }
 }
