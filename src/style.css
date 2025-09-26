@@ -1,11 +1,11 @@
-/* @font-face {
+/* Base styles (desktop-first) */
+@font-face {
   font-family: 'Minecraft';
   src: url('/fonts/Minecraft.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-} */
+}
 
-/* remove white border from page */
 body {
   margin: 0;
   font-family: "Minecraft";
@@ -30,7 +30,6 @@ h1 {
   position: fixed;
   bottom: 8px;
   width: 100%;
-
   display: flex;
   justify-content: center;
 }
@@ -80,11 +79,9 @@ h1 {
   bottom: 0;
   right: 0;
   background-color: #00000080;
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   font-size: 2em;
   color: white;
   text-align: center;
@@ -105,10 +102,91 @@ h1 {
   bottom: 20px;
   left: 20px;
 }
+
 #lookArea {
   position: absolute;
   top: 0;
   right: 0;
   width: 70%; /* right side for looking */
   height: 100%;
+}
+
+/* ------------------ Mobile Responsive ------------------ */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2em;
+  }
+
+  #info {
+    font-size: 12px;
+    margin: 1px;
+  }
+
+  #toolbar {
+    padding: 6px;
+    column-gap: 8px;
+    overflow-x: auto; /* prevent overflow */
+  }
+
+  .toolbar-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .toolbar-label {
+    font-size: 0.5em;
+    padding: 2px 6px;
+  }
+
+  #status {
+    font-size: 1.2em;
+  }
+
+  #joystick {
+    width: 100px;
+    height: 100px;
+    bottom: 12px;
+    left: 12px;
+  }
+
+  #overlay {
+    font-size: 1.5em;
+    padding: 0 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  h1 {
+    font-size: 1.5em;
+  }
+
+  #toolbar {
+    padding: 4px;
+    column-gap: 6px;
+  }
+
+  .toolbar-icon {
+    width: 35px;
+    height: 35px;
+  }
+
+  .toolbar-label {
+    font-size: 0.9em;
+    padding: 1px 4px;
+  }
+
+  #status {
+    font-size: 0.5em;
+  }
+
+  #joystick {
+    width: 80px;
+    height: 80px;
+    bottom: 10px;
+    left: 10px;
+  }
+
+  #overlay {
+    font-size: 1.2em;
+  }
 }

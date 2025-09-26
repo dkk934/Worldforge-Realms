@@ -1,6 +1,5 @@
 import { Player } from "../Player/player.js";
-import nipplejs from "nipplejs";
-import { Joystick, JumpButton } from "../../Utilities/Joystick.js";
+import { Joystick } from "../../Utilities/Joystick.js";
 
 class Controls extends Player {
   constructor(scene, controlarType) {
@@ -12,14 +11,16 @@ class Controls extends Player {
       console.log("📱 Mobile controls active");
 
       const joystick = new Joystick({
-        container: document.body,
-        size: 150,
-        deadzone: 5,
-      });
-      const jumpBtn = new JumpButton({
-        container: document.body,
-        player: this,
-        size: 70,
+        joystickSize: 80,
+        joystickPosition: { bottom: "60px", left: "60px" },
+        joystickBg: "rgba(50,50,50,0.5)",
+        stickBg: "rgba(255, 0, 0, 0.8)",
+        jumpSize: 50,
+        jumpPosition: { bottom: "50px", right: "50px" },
+        jumpBg: "rgba(200,255,200,0.7)",
+        jumpColor: "#333",
+        jumpLabel: "⬆️",
+        deadzone: 15,
       });
 
       // 🔥 Joystick move
@@ -40,7 +41,7 @@ class Controls extends Player {
         this.stopX();
         this.stopZ();
       });
-      jumpBtn.on("jump", () => {
+      joystick.on("jump", () => {
         console.log("🆙 Jump button pressed");
         this.jump();
       });

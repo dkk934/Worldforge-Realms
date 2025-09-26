@@ -1,31 +1,53 @@
 export class Joystick {
   constructor(options = {}) {
     this.container = options.container || document.body;
-    this.size = options.size || 100;
+
+    // --- Joystick customization ---
+    this.joystickSize = options.joystickSize || 100;
+    this.joystickPosition = options.joystickPosition || { bottom: "50px", left: "50px" };
+    this.joystickBg = options.joystickBg || "rgba(0,0,0,0.3)";
+    this.stickBg = options.stickBg || "rgba(255,255,255,0.7)";
     this.deadzone = options.deadzone || 10;
+
+    // --- Jump button customization ---
+    this.jumpSize = options.jumpSize || 80;
+    this.jumpPosition = options.jumpPosition || { bottom: "40px", right: "40px" };
+    this.jumpBg = options.jumpBg || "rgba(255,255,255,0.7)";
+    this.jumpColor = options.jumpColor || "#000";
+    this.jumpLabel = options.jumpLabel || "⭡";
 
     this.events = {};
 
-    // Joystick elements
+    // --- Joystick elements ---
     this.joystick = document.createElement("div");
     this.stick = document.createElement("div");
 
-    this._initStyles();
-    this._attachEvents();
+    // --- Jump button element ---
+    this.jumpButton = document.createElement("div");
+
+    // init UI
+    this._initJoystickStyles();
+    this._initJumpStyles();
 
     this.container.appendChild(this.joystick);
     this.joystick.appendChild(this.stick);
+    this.container.appendChild(this.jumpButton);
 
+    // state
     this.active = false;
     this.touchId = null;
-
-    // Position caching
     this.stickX = 0;
     this.stickY = 0;
     this.frameRequested = false;
+
+    // attach events
+    this._attachJoystickEvents();
+    this._attachJumpEvents();
   }
 
-  // Event system
+  /* -------------------
+     Event System
+  -------------------- */
   on(event, callback) {
     if (!this.events[event]) this.events[event] = [];
     this.events[event].push(callback);
@@ -37,15 +59,19 @@ export class Joystick {
     }
   }
 
-  // Styles (removed transitions for instant updates)
-  _initStyles() {
+  /* -------------------
+     Joystick Styles
+  -------------------- */
+  _initJoystickStyles() {
     Object.assign(this.joystick.style, {
       position: "absolute",
-      bottom: "50px",
-      left: "50px",
-      width: this.size + "px",
-      height: this.size + "px",
-      background: "rgba(0,0,0,0.3)",
+      bottom: this.joystickPosition.bottom || "auto",
+      left: this.joystickPosition.left || "auto",
+      right: this.joystickPosition.right || "auto",
+      top: this.joystickPosition.top || "auto",
+      width: this.joystickSize + "px",
+      height: this.joystickSize + "px",
+      background: this.joystickBg,
       borderRadius: "50%",
       touchAction: "none",
       userSelect: "none",
@@ -53,32 +79,60 @@ export class Joystick {
 
     Object.assign(this.stick.style, {
       position: "absolute",
-      width: this.size / 2 + "px",
-      height: this.size / 2 + "px",
-      background: "rgba(255,255,255,0.7)",
+      width: this.joystickSize / 2 + "px",
+      height: this.joystickSize / 2 + "px",
+      background: this.stickBg,
       borderRadius: "50%",
-      left: this.size / 4 + "px",
-      top: this.size / 4 + "px",
+      left: this.joystickSize / 4 + "px",
+      top: this.joystickSize / 4 + "px",
       transform: "translate(0,0)",
       willChange: "transform",
     });
   }
 
-  // Event listeners (passive: false for responsiveness)
-  _attachEvents() {
-    const opts = { passive: false };
-    this.joystick.addEventListener("touchstart", (e) => this._onStart(e), opts);
-    this.joystick.addEventListener("touchmove", (e) => this._onMove(e), opts);
-    this.joystick.addEventListener("touchend", (e) => this._onEnd(e), opts);
+  /* -------------------
+     Jump Button Styles
+  -------------------- */
+  _initJumpStyles() {
+    Object.assign(this.jumpButton.style, {
+      position: "absolute",
+      bottom: this.jumpPosition.bottom || "auto",
+      right: this.jumpPosition.right || "auto",
+      left: this.jumpPosition.left || "auto",
+      top: this.jumpPosition.top || "auto",
+      width: this.jumpSize + "px",
+      height: this.jumpSize + "px",
+      background: this.jumpBg,
+      borderRadius: "50%",
+      textAlign: "center",
+      lineHeight: this.jumpSize + "px",
+      fontSize: "20px",
+      fontWeight: "bold",
+      color: this.jumpColor,
+      userSelect: "none",
+      touchAction: "none",
+    });
+
+    this.jumpButton.innerHTML = this.jumpLabel;
   }
 
-  _onStart(e) {
+  /* -------------------
+     Joystick Events
+  -------------------- */
+  _attachJoystickEvents() {
+    const opts = { passive: false };
+    this.joystick.addEventListener("touchstart", (e) => this._onJoyStart(e), opts);
+    this.joystick.addEventListener("touchmove", (e) => this._onJoyMove(e), opts);
+    this.joystick.addEventListener("touchend", (e) => this._onJoyEnd(e), opts);
+  }
+
+  _onJoyStart(e) {
     this.active = true;
     this.touchId = e.changedTouches[0].identifier;
     this.emit("start");
   }
 
-  _onMove(e) {
+  _onJoyMove(e) {
     if (!this.active) return;
 
     for (let touch of e.changedTouches) {
@@ -90,13 +144,12 @@ export class Joystick {
         const dist = Math.sqrt(x * x + y * y);
         const angle = Math.atan2(y, x);
 
-        const max = this.size / 2;
+        const max = this.joystickSize / 2;
         const limitedDist = Math.min(max, dist);
 
         this.stickX = limitedDist * Math.cos(angle);
         this.stickY = limitedDist * Math.sin(angle);
 
-        // Only request one frame update per RAF
         if (!this.frameRequested) {
           this.frameRequested = true;
           requestAnimationFrame(() => this._updateStick());
@@ -124,7 +177,7 @@ export class Joystick {
     this.frameRequested = false;
   }
 
-  _onEnd(e) {
+  _onJoyEnd(e) {
     for (let touch of e.changedTouches) {
       if (touch.identifier === this.touchId) {
         this.active = false;
@@ -136,73 +189,24 @@ export class Joystick {
       }
     }
   }
-}
 
-export class JumpButton {
-  constructor(options = {}) {
-    this.container = options.container || document.body;
-    this.size = options.size || 80;
-    this.player = options.player || null; // optional Player instance
-
-    this.button = document.createElement("div");
-    this.events = {};
-
-    this._initStyles();
-    this._attachEvents();
-
-    this.container.appendChild(this.button);
-  }
-
-  // Event system
-  on(event, callback) {
-    if (!this.events[event]) this.events[event] = [];
-    this.events[event].push(callback);
-  }
-
-  emit(event, data) {
-    if (this.events[event]) {
-      this.events[event].forEach((cb) => cb({ type: event }, data));
-    }
-  }
-
-  _initStyles() {
-    Object.assign(this.button.style, {
-      position: "absolute",
-      bottom: "40px",
-      right: "40px",
-      width: this.size + "px",
-      height: this.size + "px",
-      background: "rgba(255,255,255,0.7)",
-      borderRadius: "50%",
-      textAlign: "center",
-      lineHeight: this.size + "px",
-      fontSize: "20px",
-      fontWeight: "bold",
-      color: "#000",
-      userSelect: "none",
-      touchAction: "none",
-    });
-
-    this.button.innerHTML = "⭡"; // Jump arrow
-  }
-
-  _attachEvents() {
+  /* -------------------
+     Jump Events
+  -------------------- */
+  _attachJumpEvents() {
     const handler = (e) => {
       e.preventDefault();
-      // if (this.player) {
-      //   console.log("Jump triggered");
-      //   this.player.jump(); // just call existing Player jump()
-      // }
       this.emit("jump");
     };
-
-    // non-passive because we need preventDefault
-    this.button.addEventListener("touchstart", handler, { passive: false });
-    this.button.addEventListener("mousedown", handler, { passive: false });
+    this.jumpButton.addEventListener("touchstart", handler, { passive: false });
+    this.jumpButton.addEventListener("mousedown", handler, { passive: false });
   }
 
+  /* -------------------
+     Destroy
+  -------------------- */
   destroy() {
-    this.button.remove();
+    this.joystick.remove();
+    this.jumpButton.remove();
   }
 }
-
