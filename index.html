@@ -3,13 +3,17 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="src/style.css">
   <title>Worldforge Prototype</title>
 </head>
 
 <body>
+   <!-- Fullscreen prompt -->
+  <div id="fullscreenOverlay">
+    <button id="fullscreenButton">Tap to Start Fullscreen</button>
+  </div>
+
   <div id="app"></div>
   <div id="toolbar-container">
     <div id="toolbar">
@@ -35,15 +39,32 @@
   </div>
 
   <div id="status">status</div>
-  
+
   <div id="info">
     <div id="player-position"></div>
   </div>
-  <!-- <div id="joystick"></div>
-  <div id="lookArea"></div> -->
 
   <canvas id='world'></canvas>
+  
+    <script>
+    const overlay = document.getElementById("fullscreenOverlay");
+    const button = document.getElementById("fullscreenButton");
 
+    button.addEventListener("click", () => {
+      // Request fullscreen on user tap
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) { // IE/Edge
+        elem.msRequestFullscreen();
+      }
+
+      // Hide overlay, show canvas
+      overlay.style.display = "none";
+    });
+  </script>
   <script type="module" src="/src/main.js"></script>
 </body>
 

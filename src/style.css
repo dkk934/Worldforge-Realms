@@ -95,21 +95,28 @@ h1 {
   color: white;
 }
 
-#joystick {
-  width: 150px;
-  height: 150px;
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-}
+ #fullscreenOverlay {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-#lookArea {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 70%; /* right side for looking */
-  height: 100%;
-}
+    #fullscreenButton {
+      padding: 20px 40px;
+      font-size: 20px;
+      color: white;
+      background: #007bff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+
+
 
 /* ------------------ Mobile Responsive ------------------ */
 @media (max-width: 900px) {
@@ -142,12 +149,6 @@ h1 {
     font-size: 1.2em;
   }
 
-  #joystick {
-    width: 100px;
-    height: 100px;
-    bottom: 12px;
-    left: 12px;
-  }
 
   #overlay {
     font-size: 1.5em;
@@ -179,12 +180,7 @@ h1 {
     font-size: 0.5em;
   }
 
-  #joystick {
-    width: 80px;
-    height: 80px;
-    bottom: 10px;
-    left: 10px;
-  }
+
 
   #overlay {
     font-size: 1.2em;
