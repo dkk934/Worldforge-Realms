@@ -112,7 +112,7 @@ h1 {
 }
 
 /* ------------------ Mobile Responsive ------------------ */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   h1 {
     font-size: 2em;
   }
