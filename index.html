@@ -9,7 +9,7 @@
 </head>
 
 <body>
-   <!-- Fullscreen prompt -->
+  <!-- Fullscreen prompt -->
   <div id="fullscreenOverlay">
     <button id="fullscreenButton">Tap to Start Fullscreen</button>
   </div>
@@ -45,8 +45,8 @@
   </div>
 
   <canvas id='world'></canvas>
-  
-    <script>
+
+  <script>
     const overlay = document.getElementById("fullscreenOverlay");
     const button = document.getElementById("fullscreenButton");
 
@@ -54,16 +54,21 @@
       // Request fullscreen on user tap
       const elem = document.documentElement;
       if (elem.requestFullscreen) {
-        elem.requestFullscreen();
-      } else if (elem.webkitRequestFullscreen) { // Safari
+        elem.requestFullscreen().then(() => {
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape');
+          }
+        });
+      } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
-      } else if (elem.msRequestFullscreen) { // IE/Edge
-        elem.msRequestFullscreen();
+        if (screen.orientation && screen.orientation.lock) {
+          screen.orientation.lock('landscape');
+        }
       }
 
       // Hide overlay, show canvas
       overlay.style.display = "none";
-    });
+    }); 
   </script>
   <script type="module" src="/src/main.js"></script>
 </body>
