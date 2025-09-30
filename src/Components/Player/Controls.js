@@ -45,6 +45,10 @@ class Controls extends Player {
         console.log("🆙 Jump button pressed");
         this.jump();
       });
+
+      
+      window.addEventListener("DOMContentLoaded", () => this.setupListeners());
+      
     } else {
       console.log("💻 Laptop controls active");
       // Setup laptop controls (pointer lock, keyboard, etc)
@@ -71,15 +75,7 @@ class Controls extends Player {
       case "Digit6":
       case "Digit7":
       case "Digit8":
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.remove("selected");
-        this.activeBlockId = Number(e.key);
-        document
-          .getElementById(`toolbar-${this.activeBlockId}`)
-          .classList.add("selected");
-        this.tool.visible = this.activeBlockId === 0;
-        // console.log("activeBlock =", e.key);
+        this.selectBlock(Number(e.key));
         break;
       case "KeyU":
         this.input.y = this.maxSpeed;
@@ -129,6 +125,31 @@ class Controls extends Player {
         this.stopX();
         break;
     }
+  }
+
+  // onClick(e) {}
+
+  selectBlock(blockId) {
+    // Remove "selected" class from the currently active block
+    document
+      .getElementById(`toolbar-${this.activeBlockId}`)
+      .classList.remove("selected");
+    this.activeBlockId = blockId;
+    document
+      .getElementById(`toolbar-${this.activeBlockId}`)
+      .classList.add("selected");
+    this.tool.visible = this.activeBlockId === 0;
+    // console.log("activeBlock =", e.key);
+  }
+
+   setupListeners() {
+    const toolbarIcons = document.querySelectorAll(".toolbar-icon");
+    toolbarIcons.forEach((icon) => {
+      icon.addEventListener("click", (e) => {
+        const blockId = Number(e.target.id.replace("toolbar-", ""));
+        this.selectBlock(blockId); // works fine
+      });
+    });
   }
 }
 

@@ -178,8 +178,5 @@ function animate() {
   previousTime = currentTime;
 }
 
-// =====================
-// UI & Start
-// =====================
 createUi(world, obj);
 animate();
