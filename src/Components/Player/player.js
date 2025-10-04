@@ -58,7 +58,7 @@ export class Player {
     // Add camera and helpers to scene
     this.FPP.layers.enable(1);
     scene.add(this.FPP);
-    // scene.add(this.cameraHelper);
+    scene.add(this.cameraHelper);
     scene.add(this.boundHelper);
     this.FPP.add(this.tool);
 

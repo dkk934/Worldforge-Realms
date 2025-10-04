@@ -1,17 +1,15 @@
 import * as THREE from "three";
 import Stats from "three/examples/jsm/libs/stats.module.js";
 import { Render } from "./Components/Render";
-// import { Camera } from "./Components/Camera";
 import { Light } from "./Components/Lights";
-// import { Helper } from "./Utilities/Helpers";
 import { createUi } from "./Utilities/Ui";
-// import { Player } from "./Components/Player/player";
 import Physics from "./Physics";
 import { World } from "./World";
 import { block } from "./Utilities/Block";
 import { ModelLoader } from "./Utilities/ModelLoader";
 import { setupControls } from "./Utilities/controlsSetup";
 import Controls from "./Components/Player/Controls";
+import MobileOrbitControls from "./Utilities/MobileOrbitControls";
 
 // =====================
 // Scene & Camera Setup
@@ -65,14 +63,18 @@ window.addEventListener("keydown", (event) => {
 const physics = new Physics(scene);
 
 // =====================
-// Helpers & Controls
+// Controls
 // =====================
-// scene.add(Helper.grid);
-// scene.add(Helper.axishlper);
-// const controls = Helper.createOrbitControls(orcitcamera, renderer);
-// controls.target.set(16, 0, 16);
-// const DLHelper = Helper.DLightHelper(Light.directionallight);
-// scene.add(DLHelper);
+const controls = new MobileOrbitControls(player.FPP, renderer.domElement);
+// Pure gyroscope mode
+// controls.enableGyro(false);
+
+// Hybrid mode (gyro + swipe offsets)
+// controls.enableGyro(true);
+
+// Disable gyro
+controls.disableGyro();
+
 const dlshowdoh = new THREE.CameraHelper(Light.directionallight.shadow.camera);
 
 // =====================
